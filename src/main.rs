@@ -1,6 +1,7 @@
 use tide::Request;
 use tide::prelude::*; // Pulls in the json! macro.
 use std::collections::HashMap;
+use std::env;
 
 #[derive(Debug, Deserialize, Serialize)]
 struct Echo {
@@ -15,7 +16,7 @@ async fn echo(mut req: Request<()>) -> tide::Result<String> {
         method: req.method().to_string(),
         path: req.url().to_string(),
         headers: HashMap::new(),
-        body: req.body_string().await.unwrap_or_else(|_|{String::from("")})
+        body: req.body_string().await.unwrap_or(String::from(""))
     };
     req.iter().for_each(|header|{
         echoed.headers.insert(header.0.to_string(), header.1.to_string());
@@ -29,6 +30,7 @@ async fn main() -> tide::Result<()> {
     tide::log::start();
     let mut app = tide::new();
     app.at("/").all(echo);
-    app.listen("127.0.0.1:8080").await?;
+    let port = env::var("PORT").unwrap_or(String::from("8080"));
+    app.listen(format!("127.0.0.1:{}", port)).await?;
     Ok(())
 }
