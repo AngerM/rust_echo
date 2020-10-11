@@ -1,9 +1,20 @@
 use tide::Request;
 use tide::prelude::*; // Pulls in the json! macro.
+use std::collections::HashMap;
+
+#[derive(Debug, Deserialize, Serialize)]
+struct Echo {
+    method: String,
+    headers: HashMap<String, String>
+}
 
 async fn echo(req: Request<()>) -> tide::Result<String> {
-    let hello = String::from("Hello");
-    Ok(hello)
+    let echod = Echo{
+        method: req.method().to_string(),
+        headers: HashMap::new()
+    };
+    let jsonBody = serde_json::to_string(&echod);
+    Ok(jsonBody.unwrap())
 }
 
 #[async_std::main]
