@@ -7,7 +7,7 @@ use std::env;
 struct Echo {
     method: String,
     path: String,
-    headers: HashMap<String, String>,
+    headers: HashMap<String, Vec<String>>,
     body: String
 }
 
@@ -19,7 +19,12 @@ async fn echo(mut req: Request<()>) -> tide::Result<String> {
         body: req.body_string().await.unwrap_or(String::from(""))
     };
     req.iter().for_each(|header|{
-        echoed.headers.insert(header.0.to_string(), header.1.to_string());
+        echoed.headers.insert(
+            header.0.to_string(),
+            header.1.iter().map(|value|{
+                value.to_string()
+            }).collect()
+        );
     });
     let json_body = serde_json::to_string(&echoed);
     Ok(json_body.unwrap())
