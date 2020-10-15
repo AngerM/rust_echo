@@ -31,6 +31,6 @@ async fn main() -> tide::Result<()> {
     let mut app = tide::new();
     app.at("/").all(echo);
     let port = env::var("PORT").unwrap_or(String::from("8080"));
-    app.listen(format!("127.0.0.1:{}", port)).await?;
+    app.listen(format!("0.0.0.0:{}", port)).await?;
     Ok(())
 }
