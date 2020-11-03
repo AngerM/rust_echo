@@ -1,4 +1,4 @@
-use tide::Request;
+use tide::{Request, Response};
 use tide::prelude::*; // Pulls in the json! macro.
 use std::collections::HashMap;
 use std::env;
@@ -11,7 +11,7 @@ struct Echo {
     body: String
 }
 
-async fn echo(mut req: Request<()>) -> tide::Result<String> {
+async fn echo(mut req: Request<()>) -> tide::Result<tide::Response> {
     let mut echoed = Echo{
         method: req.method().to_string(),
         path: req.url().to_string(),
@@ -27,7 +27,10 @@ async fn echo(mut req: Request<()>) -> tide::Result<String> {
         );
     });
     let json_body = serde_json::to_string(&echoed);
-    Ok(json_body.unwrap())
+    Ok(Response::builder(200)
+        .header("Cache-Control", "no-cache")
+        .body(json_body.unwrap())
+        .build())
 }
 
 #[async_std::main]
