@@ -1,5 +1,6 @@
 use tide::{Request, Response};
 use tide::prelude::*; // Pulls in the json! macro.
+use tide::http::StatusCode;
 use std::collections::HashMap;
 use std::env;
 
@@ -27,7 +28,7 @@ async fn echo(mut req: Request<()>) -> tide::Result<tide::Response> {
         );
     });
     let json_body = serde_json::to_string(&echoed);
-    Ok(Response::builder(200)
+    Ok(Response::builder(StatusCode::Ok)
         .header("Cache-Control", "no-cache")
         .body(json_body.unwrap())
         .build())
