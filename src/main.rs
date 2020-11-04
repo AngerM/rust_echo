@@ -19,10 +19,10 @@ async fn echo(mut req: Request<()>) -> tide::Result<tide::Response> {
         headers: HashMap::new(),
         body: req.body_string().await.unwrap_or(String::from(""))
     };
-    req.iter().for_each(|header|{
+    req.iter().for_each(|(name, value_list)|{
         echoed.headers.insert(
-            header.0.to_string(),
-            header.1.iter().map(|value|{
+            name.to_string(),
+            value_list.iter().map(|value|{
                 value.to_string()
             }).collect()
         );
