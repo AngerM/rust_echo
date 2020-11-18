@@ -15,7 +15,7 @@ struct Echo {
 async fn echo(mut req: Request<()>) -> tide::Result<tide::Response> {
     let mut echoed = Echo{
         method: req.method().to_string(),
-        path: req.url().to_string(),
+        path: req.url().path().to_string(),
         headers: HashMap::new(),
         body: req.body_string().await.unwrap_or(String::from(""))
     };
