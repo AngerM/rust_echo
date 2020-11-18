@@ -20,11 +20,17 @@ async fn echo(mut req: Request<()>) -> tide::Result<tide::Response> {
         body: req.body_string().await.unwrap_or(String::from(""))
     };
     req.iter().for_each(|(name, value_list)|{
+        let split_list: Vec<String> = value_list.iter().map(
+            |val| {
+                val.to_string()
+                   .split(",")
+                   .map(|val| val.trim())
+                   .collect()
+            }
+        ).collect();
         echoed.headers.insert(
             name.to_string(),
-            value_list.iter().map(|value|{
-                value.to_string()
-            }).collect()
+            split_list
         );
     });
     let json_body = serde_json::to_string(&echoed);
