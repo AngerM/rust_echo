@@ -20,17 +20,17 @@ async fn echo(mut req: Request<()>) -> tide::Result<tide::Response> {
         body: req.body_string().await.unwrap_or(String::from(""))
     };
     req.iter().for_each(|(name, value_list)|{
-        let split_list: Vec<String> = value_list.iter().map(
+        let mut split_list: Vec<String> = Vec::new();
+        value_list.iter().for_each(
             |val| {
                 let strval = val.to_string();
                 let partial: Vec<&str> = strval.split(",")
                                                .collect();
-
-               partial.iter()
-                      .map(|v| v.trim())
-                      .collect()
+                partial.iter().for_each(|p|
+                    split_list.insert(0, p.trim().to_string())
+                )
             }
-        ).collect();
+        );
         echoed.headers.insert(
             name.to_string(),
             split_list
