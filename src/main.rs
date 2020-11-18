@@ -22,10 +22,13 @@ async fn echo(mut req: Request<()>) -> tide::Result<tide::Response> {
     req.iter().for_each(|(name, value_list)|{
         let split_list: Vec<String> = value_list.iter().map(
             |val| {
-                val.to_string()
-                   .split(",")
-                   .map(|val| val.trim())
-                   .collect()
+                let strval = val.to_string();
+                let partial: Vec<&str> = strval.split(",")
+                                               .collect();
+
+               partial.iter()
+                      .map(|v| v.trim())
+                      .collect()
             }
         ).collect();
         echoed.headers.insert(
