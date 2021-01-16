@@ -1,30 +1,28 @@
-use tide::{Request, Response};
-use tide::prelude::*; // Pulls in the json! macro.
-use tide::http::StatusCode;
 use std::collections::HashMap;
 use std::env;
+use tide::http::StatusCode;
+use tide::prelude::*; // Pulls in the json! macro.
+use tide::{Request, Response};
 
 #[derive(Debug, Deserialize, Serialize)]
 struct Echo {
     method: String,
     path: String,
     headers: HashMap<String, Vec<String>>,
-    body: String
+    body: String,
 }
 
 async fn echo(mut req: Request<()>) -> tide::Result<tide::Response> {
-    let mut echoed = Echo{
+    let mut echoed = Echo {
         method: req.method().to_string(),
         path: req.url().path().to_string(),
         headers: HashMap::new(),
-        body: req.body_string().await.unwrap_or(String::from(""))
+        body: req.body_string().await.unwrap_or(String::from("")),
     };
-    req.iter().for_each(|(name, value_list)|{
+    req.iter().for_each(|(name, value_list)| {
         echoed.headers.insert(
             name.to_string(),
-            value_list.iter().map(|value|{
-                value.to_string()
-            }).collect()
+            value_list.iter().map(|value| value.to_string()).collect(),
         );
     });
     let json_body = serde_json::to_string(&echoed);
