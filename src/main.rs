@@ -1,8 +1,11 @@
 use std::collections::HashMap;
 use std::env;
-use tide::http::StatusCode;
-use tide::prelude::*; // Pulls in the json! macro.
+
+use serde_json::{Map, Value};
+// Pulls in the json! macro.
 use tide::{Request, Response};
+use tide::http::StatusCode;
+use tide::prelude::*;
 
 #[derive(Debug, Deserialize, Serialize)]
 struct Echo {
@@ -10,14 +13,21 @@ struct Echo {
     path: String,
     headers: HashMap<String, Vec<String>>,
     body: String,
+    parsed: Map<String, Value>,
 }
 
 async fn echo(mut req: Request<()>) -> tide::Result<tide::Response> {
+    let body = req.body_string().await.unwrap_or(String::from(""));
+    let parsed: Value = match serde_json::from_str(body.as_str()) {
+        Ok(val) => val,
+        Err(_) => Value::Object(Default::default()),
+    };
     let mut echoed = Echo {
         method: req.method().to_string(),
         path: req.url().path().to_string(),
         headers: HashMap::new(),
-        body: req.body_string().await.unwrap_or(String::from("")),
+        body: body,
+        parsed: parsed.as_object().unwrap().clone(),
     };
     req.iter().for_each(|(name, value_list)| {
         echoed.headers.insert(
