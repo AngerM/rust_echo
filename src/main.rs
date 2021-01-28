@@ -17,8 +17,8 @@ struct Echo {
 }
 
 async fn echo(mut req: Request<()>) -> tide::Result<tide::Response> {
-    let body = req.body_string().await.unwrap_or(String::from(""));
-    let parsed: Value = match serde_json::from_str(body.as_str()) {
+    let body_str = req.body_string().await.unwrap_or(String::from(""));
+    let parsed: Value = match serde_json::from_str(body_str.as_str()) {
         Ok(val) => val,
         Err(_) => Value::Object(Default::default()),
     };
@@ -26,7 +26,7 @@ async fn echo(mut req: Request<()>) -> tide::Result<tide::Response> {
         method: req.method().to_string(),
         path: req.url().path().to_string(),
         headers: HashMap::new(),
-        body: body,
+        body: body_str,
         parsed: parsed.as_object().unwrap().clone(),
     };
     req.iter().for_each(|(name, value_list)| {
