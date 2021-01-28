@@ -17,6 +17,7 @@ struct Echo {
 }
 
 async fn echo(mut req: Request<()>) -> tide::Result<tide::Response> {
+    // Try to parse body if Json
     let body_str = req.body_string().await.unwrap_or(String::from(""));
     let parsed: Value = match serde_json::from_str(body_str.as_str()) {
         Ok(val) => val,
