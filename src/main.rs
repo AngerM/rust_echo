@@ -39,7 +39,7 @@ async fn echo(mut req: Request<()>) -> tide::Result<tide::Response> {
     let json_body = serde_json::to_string(&echoed);
     Ok(Response::builder(StatusCode::Ok)
         .header("Cache-Control", "no-cache")
-        .body(json_body.unwrap())
+        .body(json_body.unwrap_or(""))
         .build())
 }
 
