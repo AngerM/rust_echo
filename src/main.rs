@@ -30,6 +30,7 @@ async fn echo(mut req: Request<()>) -> tide::Result<tide::Response> {
         body: body_str,
         parsed: parsed.as_object().unwrap().clone(),
     };
+    // Swap the headers into a Vec<String>
     req.iter().for_each(|(name, value_list)| {
         echoed.headers.insert(
             name.to_string(),
