@@ -49,7 +49,7 @@ async fn main() -> tide::Result<()> {
     tide::log::start();
     let mut app = tide::new();
     app.at("/").all(echo);
-    app.at("/*path").all(echo);
+    app.at("/*").all(echo);
     let port = env::var("PORT").unwrap_or(String::from("8080"));
     app.listen(format!("0.0.0.0:{}", port)).await?;
     Ok(())
