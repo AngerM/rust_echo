@@ -11,6 +11,7 @@ use tide::prelude::*;
 struct Echo {
     method: String,
     path: String,
+    params: HashMap<String, String>,
     headers: HashMap<String, Vec<String>>,
     body: String,
     parsed: Map<String, Value>,
@@ -23,9 +24,11 @@ async fn echo(mut req: Request<()>) -> tide::Result<tide::Response> {
         Ok(val) => val,
         Err(_) => Value::Object(Default::default()),
     };
+    let params: HashMap<String, String> = req.query().unwrap_or(HashMap::new());
     let mut echoed = Echo {
         method: req.method().to_string(),
         path: req.url().path().to_string(),
+        params,
         headers: HashMap::new(),
         body: body_str,
         parsed: parsed.as_object().unwrap().clone(),
