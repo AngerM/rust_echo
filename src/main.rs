@@ -14,11 +14,11 @@ struct Echo {
     body: String,
     parsed: Map<String, Value>,
 }
+static empty: Vec<u8> = vec![];
 
 #[handler]
 async fn echo(req: &mut Request, res: &mut Response) {
     // Try to parse body if Json
-    let empty = vec![];
     let body_str = std::str::from_utf8(req.payload().await.unwrap_or(&empty))
         .unwrap_or("")
         .to_string();
