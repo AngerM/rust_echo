@@ -808,7 +808,6 @@ dependencies = [
 name = "rust_echo"
 version = "0.1.0"
 dependencies = [
- "multimap",
  "salvo",
  "serde",
  "serde_json",

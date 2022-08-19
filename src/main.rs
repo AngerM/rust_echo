@@ -49,8 +49,14 @@ async fn echo(req: &mut Request, res: &mut Response) {
 async fn main() {
     let port = env::var("PORT").unwrap_or(String::from("8080"));
     let router = Router::new()
-        .path("<*>")
-        .handle(echo);
+        .push (Router::new()
+            .path("<*>")
+            .handle(echo)
+        ).push(
+        Router::new()
+            .handle(echo)
+        );
+
     let addr = format!("0.0.0.0:{}", port);
     Server::new(
         TcpListener::bind(
