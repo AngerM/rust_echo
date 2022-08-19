@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 use std::env;
 
-use serde_json::{Map, Value};
-use salvo::prelude::*;
+use salvo::{hyper::HeaderMap, prelude::*};
 use serde::{Deserialize, Serialize};
+use serde_json::{Map, Value};
 
 #[derive(Debug, Deserialize, Serialize)]
 struct Echo {
@@ -18,7 +18,10 @@ struct Echo {
 #[handler]
 async fn echo(req: &mut Request, res: &mut Response) {
     // Try to parse body if Json
-    let body_str = req.parse_body().await.unwrap_or(String::from(""));
+    let empty = vec![];
+    let body_str = std::str::from_utf8(req.payload().await.unwrap_or(&empty))
+        .unwrap_or("")
+        .to_string();
     let parsed: Value = match serde_json::from_str(body_str.as_str()) {
         Ok(val) => val,
         Err(_) => Value::Object(Default::default()),
@@ -35,13 +38,15 @@ async fn echo(req: &mut Request, res: &mut Response) {
         echoed.params.insert(k.to_string(), v.to_string());
     });
     req.headers().iter().for_each(|(name, value_list)| {
-        echoed.headers.insert(
-            name.to_string(),
-            value_list.to_str().unwrap().to_string(),
-        );
+        echoed
+            .headers
+            .insert(name.to_string(), value_list.to_str().unwrap().to_string());
     });
     let json_body = serde_json::to_string(&echoed);
+    let mut headers = HeaderMap::new();
+    headers.insert("Content-Type", "application/json".parse().unwrap());
     res.set_status_code(StatusCode::OK);
+    res.set_headers(headers);
     res.render(json_body.unwrap_or(String::from("")));
 }
 
@@ -49,18 +54,11 @@ async fn echo(req: &mut Request, res: &mut Response) {
 async fn main() {
     let port = env::var("PORT").unwrap_or(String::from("8080"));
     let router = Router::new()
-        .push (Router::new()
-            .path("<*>")
-            .handle(echo)
-        ).push(
-        Router::new()
-            .handle(echo)
-        );
+        .push(Router::new().path("<*>").handle(echo))
+        .push(Router::new().handle(echo));
 
     let addr = format!("0.0.0.0:{}", port);
-    Server::new(
-        TcpListener::bind(
-            addr.as_str()
-        )
-    ).serve(router).await;
+    Server::new(TcpListener::bind(addr.as_str()))
+        .serve(router)
+        .await;
 }
