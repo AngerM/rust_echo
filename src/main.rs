@@ -41,7 +41,9 @@ async fn echo(req: &mut Request, res: &mut Response) {
     headers.insert("Content-Type", "application/json".parse().unwrap());
     res.set_status_code(StatusCode::OK);
     res.set_headers(headers);
-    res.render(json_body.unwrap_or(String::from("")));
+    res.write_body(
+        json_body.unwrap_or(String::from("")).as_bytes().to_vec()
+    ).ok();
 }
 
 #[tokio::main]
