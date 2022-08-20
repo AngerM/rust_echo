@@ -9,17 +9,17 @@ use serde_json::{Map, Value};
 struct Echo {
     method: String,
     path: String,
-    params: HashMap<String, String>,
+    params: HashMap<String, Vec<String>>,
     headers: HashMap<String, String>,
     body: String,
     parsed: Map<String, Value>,
 }
-static empty: Vec<u8> = vec![];
+static EMPTY_VEC: Vec<u8> = vec![];
 
 #[handler]
 async fn echo(req: &mut Request, res: &mut Response) {
     // Try to parse body if Json
-    let body_str = std::str::from_utf8(req.payload().await.unwrap_or(&empty))
+    let body_str = std::str::from_utf8(req.payload().await.unwrap_or(&EMPTY_VEC))
         .unwrap_or("")
         .to_string();
     let parsed: Value = match serde_json::from_str(body_str.as_str()) {
@@ -34,14 +34,8 @@ async fn echo(req: &mut Request, res: &mut Response) {
         body: body_str,
         parsed: parsed.as_object().unwrap().clone(),
     };
-    req.queries().iter().for_each(|(k, v)| {
-        echoed.params.insert(k.to_string(), v.to_string());
-    });
-    req.headers().iter().for_each(|(name, value_list)| {
-        echoed
-            .headers
-            .insert(name.to_string(), value_list.to_str().unwrap().to_string());
-    });
+    echoed.params.extend(req.queries().iter_all().map(|(k, v)| (k.to_string(), v.to_vec())));
+    echoed.headers.extend(req.headers().iter().map(|(k, v)| (k.to_string(), v.to_str().unwrap().to_string())));
     let json_body = serde_json::to_string(&echoed);
     let mut headers = HeaderMap::new();
     headers.insert("Content-Type", "application/json".parse().unwrap());
