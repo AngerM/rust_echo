@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::env;
 
-use salvo::{hyper::HeaderMap, prelude::*};
+use salvo::{hyper::{HeaderMap, body::Bytes}, prelude::*};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
@@ -14,12 +14,10 @@ struct Echo {
     body: String,
     parsed: Map<String, Value>,
 }
-static EMPTY_VEC: Vec<u8> = vec![];
-
 #[handler]
 async fn echo(req: &mut Request, res: &mut Response) {
     // Try to parse body if Json
-    let body_str = std::str::from_utf8(req.payload().await.unwrap_or(&EMPTY_VEC))
+    let body_str = std::str::from_utf8(req.payload().await.unwrap())
         .unwrap_or("")
         .to_string();
     let parsed: Value = match serde_json::from_str(body_str.as_str()) {
@@ -39,7 +37,7 @@ async fn echo(req: &mut Request, res: &mut Response) {
     let json_body = serde_json::to_string(&echoed);
     let mut headers = HeaderMap::new();
     headers.insert("Content-Type", "application/json".parse().unwrap());
-    res.set_status_code(StatusCode::OK);
+    res.status_code = Some(StatusCode::OK);
     res.set_headers(headers);
     res.write_body(
         json_body.unwrap_or(String::from("")).as_bytes().to_vec()
@@ -54,7 +52,9 @@ async fn main() {
         .push(Router::new().handle(echo));
 
     let addr = format!("0.0.0.0:{}", port);
-    Server::new(TcpListener::bind(addr.as_str()))
+    Server::new(
+        TcpListener::new(addr.as_str())
+        )
         .serve(router)
         .await;
 }
