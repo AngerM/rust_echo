@@ -53,7 +53,7 @@ async fn main() {
 
     let addr = format!("0.0.0.0:{}", port);
     Server::new(
-        TcpListener::new(addr.as_str())
+        TcpListener::new(addr.as_str()).bind().await
         )
         .serve(router)
         .await;
