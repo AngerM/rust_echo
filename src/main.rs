@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::env;
 
 use salvo::{hyper::{HeaderMap, body::Bytes}, prelude::*};
+use salvo::conn::rustls::RustlsConfig;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
@@ -52,9 +53,16 @@ async fn main() {
         .push(Router::new().handle(echo));
 
     let addr = format!("0.0.0.0:{}", port);
-    Server::new(
-        TcpListener::new(addr.as_str()).bind().await
-        )
+    let listener = TcpListener::new(addr.as_str());
+
+    /*
+    let config = RustlsConfig::new();
+    let acceptor = QuinnListener::new(config, addr.as_str())
+        .join(listener)
+        .bind()
+        .await;
+     */
+    Server::new(listener.bind().await)
         .serve(router)
         .await;
 }
