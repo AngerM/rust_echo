@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 use std::env;
 
-use salvo::{hyper::{HeaderMap, body::Bytes}, prelude::*};
-use salvo::conn::rustls::RustlsConfig;
+use salvo::{hyper::{HeaderMap}, prelude::*};
+
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
