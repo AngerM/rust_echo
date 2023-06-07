@@ -1,7 +1,7 @@
-FROM rust:1-slim as builder
+FROM rust:1-slim-bookworm as builder
 COPY . .
 RUN cargo build --release
-FROM debian:bullseye-slim
+FROM debian:bookworm-slim
 COPY --from=builder ./target/release/rust_echo .
 EXPOSE 8080
 ENTRYPOINT ["/rust_echo"]
