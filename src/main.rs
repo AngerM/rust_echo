@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::env;
 
-use salvo::{hyper::{HeaderMap}, prelude::*};
+use salvo::{hyper::HeaderMap, prelude::*};
 
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
@@ -33,24 +33,31 @@ async fn echo(req: &mut Request, res: &mut Response) {
         body: body_str,
         parsed: parsed.as_object().unwrap().clone(),
     };
-    echoed.params.extend(req.queries().iter_all().map(|(k, v)| (k.to_string(), v.to_vec())));
-    echoed.headers.extend(req.headers().iter().map(|(k, v)| (k.to_string(), v.to_str().unwrap().to_string())));
+    echoed.params.extend(
+        req.queries()
+            .iter_all()
+            .map(|(k, v)| (k.to_string(), v.to_vec())),
+    );
+    echoed.headers.extend(
+        req.headers()
+            .iter()
+            .map(|(k, v)| (k.to_string(), v.to_str().unwrap().to_string())),
+    );
     let json_body = serde_json::to_string(&echoed);
     let mut headers = HeaderMap::new();
     headers.insert("Content-Type", "application/json".parse().unwrap());
     res.status_code = Some(StatusCode::OK);
     res.set_headers(headers);
-    res.write_body(
-        json_body.unwrap_or(String::from("")).as_bytes().to_vec()
-    ).ok();
+    res.write_body(json_body.unwrap_or(String::from("")).as_bytes().to_vec())
+        .ok();
 }
 
 #[tokio::main]
 async fn main() {
     let port = env::var("PORT").unwrap_or(String::from("8080"));
     let router = Router::new()
-        .push(Router::new().path("<*>").handle(echo))
-        .push(Router::new().handle(echo));
+        .push(Router::new().path("<*>").goal(echo))
+        .push(Router::new().goal(echo));
 
     let addr = format!("0.0.0.0:{}", port);
     let listener = TcpListener::new(addr.as_str());
@@ -62,7 +69,5 @@ async fn main() {
         .bind()
         .await;
      */
-    Server::new(listener.bind().await)
-        .serve(router)
-        .await;
+    Server::new(listener.bind().await).serve(router).await;
 }
