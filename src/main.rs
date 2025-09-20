@@ -59,8 +59,8 @@ async fn main() {
         .push(Router::new().path("<*>").goal(echo))
         .push(Router::new().goal(echo));
 
-    let addr = format!("0.0.0.0:{}", port);
-    let listener = TcpListener::new(addr.as_str());
+    let port_u16: u16 = port.parse().unwrap_or(8080);
+    let listener = TcpListener::new(("0.0.0.0", port_u16));
 
     /*
     let config = RustlsConfig::new();
