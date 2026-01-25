@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 use std::env;
 
-use salvo::{hyper::HeaderMap, prelude::*};
+use salvo::prelude::*;
 
 use serde::{Deserialize, Serialize};
-use serde_json::{Map, Value};
+use serde_json::Value;
 
 #[derive(Debug, Deserialize, Serialize)]
 struct Echo {
@@ -13,48 +13,47 @@ struct Echo {
     params: HashMap<String, Vec<String>>,
     headers: HashMap<String, String>,
     body: String,
-    parsed: Map<String, Value>,
+    parsed: Value,
 }
 #[handler]
 async fn echo(req: &mut Request, res: &mut Response) {
     // Try to parse body if Json
-    let body_str = std::str::from_utf8(req.payload().await.unwrap())
+    let body_str = req
+        .payload()
+        .await
+        .ok()
+        .and_then(|b| std::str::from_utf8(b).ok())
         .unwrap_or("")
         .to_string();
-    let parsed: Value = match serde_json::from_str(body_str.as_str()) {
-        Ok(val) => val,
-        Err(_) => Value::Object(Default::default()),
-    };
-    let mut echoed = Echo {
+
+    let parsed: Value = serde_json::from_str(&body_str).unwrap_or(Value::Null);
+
+    let params = req
+        .queries()
+        .iter_all()
+        .map(|(k, v)| (k.to_string(), v.to_vec()))
+        .collect();
+
+    let headers = req
+        .headers()
+        .iter()
+        .map(|(k, v)| (k.to_string(), v.to_str().unwrap_or("").to_string()))
+        .collect();
+
+    let echoed = Echo {
         method: req.method().to_string(),
         path: req.uri().path().to_string(),
-        params: HashMap::new(),
-        headers: HashMap::new(),
+        params,
+        headers,
         body: body_str,
-        parsed: parsed.as_object().unwrap().clone(),
+        parsed,
     };
-    echoed.params.extend(
-        req.queries()
-            .iter_all()
-            .map(|(k, v)| (k.to_string(), v.to_vec())),
-    );
-    echoed.headers.extend(
-        req.headers()
-            .iter()
-            .map(|(k, v)| (k.to_string(), v.to_str().unwrap().to_string())),
-    );
-    let json_body = serde_json::to_string(&echoed);
-    let mut headers = HeaderMap::new();
-    headers.insert("Content-Type", "application/json".parse().unwrap());
-    res.status_code = Some(StatusCode::OK);
-    res.set_headers(headers);
-    res.write_body(json_body.unwrap_or(String::from("")).as_bytes().to_vec())
-        .ok();
+    res.render(Json(echoed));
 }
 
 #[tokio::main]
 async fn main() {
-    let port = env::var("PORT").unwrap_or(String::from("8080"));
+    let port = env::var("PORT").unwrap_or_else(|_| String::from("8080"));
     let router = Router::new()
         .push(Router::new().path("<*>").goal(echo))
         .push(Router::new().goal(echo));
