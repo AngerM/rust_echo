@@ -8,6 +8,6 @@ edition = "2021"
 
 [dependencies]
 salvo = { version = "*", features = ["quinn"] }
-tokio = { version = "1", features = ["macros"] }
+tokio = { version = "*", features = ["macros"] }
 serde = "1"
 serde_json = "1"
