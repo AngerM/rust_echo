@@ -1,5 +1,7 @@
-# fly.toml file for falling-feather-6822
-# Optimized for a Rust Salvo web server
+# fly.toml app configuration file generated for falling-feather-6822 on 2026-07-01T17:47:53Z
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
 
 app = "falling-feather-6822"
 primary_region = "dfw"
@@ -15,7 +17,9 @@ kill_timeout = "20s"
   auto_stop_machines = true
   auto_start_machines = true
   min_machines_running = 0
-  processes = ["app"]
+  processes = ['app']
+  checks = [{ grace_period = '5s', interval = '15s', method = 'GET', path = '/health', timeout = '2s' }]
+  concurrency = { hard_limit = 250, soft_limit = 200, type = 'requests' }
 
   [http_service.concurrency]
     type = "requests"
@@ -28,3 +32,11 @@ kill_timeout = "20s"
     method = "GET"
     path = "/health"
     timeout = "2s"
+
+[[vm]]
+  cpu_kind = 'shared'
+  cpus = 1
+  memory = '256mb'
+  memory_mb = 256
+  processes = ['app']
+  size = 'shared-cpu-1x'
