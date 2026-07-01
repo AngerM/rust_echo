@@ -11,10 +11,10 @@ COPY --from=planner /app/recipe.json recipe.json
 RUN cargo chef cook --release --recipe-path recipe.json
 # Build application
 COPY . .
-RUN cargo build --release --bin app
+RUN cargo build --release --bin rust_echo
 
 # We do not need the Rust toolchain to run the binary!
 FROM debian:trixie-slim AS runtime
 WORKDIR /app
-COPY --from=builder /app/target/release/app /usr/local/bin
-ENTRYPOINT ["/usr/local/bin/app"]
+COPY --from=builder /app/target/release/rust_echo /usr/local/bin/rust_echo
+ENTRYPOINT ["/usr/local/bin/rust_echo"]

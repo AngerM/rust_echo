@@ -1,3 +1,7 @@
 target
+.git
+.idea
 dump.rdb
 Dockerfile
+fly.toml
+recipe.json
