@@ -55,7 +55,7 @@ async fn echo(req: &mut Request, res: &mut Response) {
 async fn main() {
     let port = env::var("PORT").unwrap_or_else(|_| String::from("8080"));
     let router = Router::new()
-        .push(Router::new().path("<*>").goal(echo))
+        .push(Router::new().path("{**rest}").goal(echo))
         .push(Router::new().goal(echo));
 
     let port_u16: u16 = port.parse().unwrap_or(8080);
